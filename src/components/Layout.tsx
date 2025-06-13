@@ -1,19 +1,34 @@
-import { ReactNode, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { ReactNode } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Icon from "@/components/ui/icon";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { role, switchRole } = useUserRole();
+  const { session, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  if (!session) {
+    return null;
+  }
+
+  const { user } = session;
 
   const navigation = [
     {
@@ -43,8 +58,13 @@ const Layout = ({ children }: LayoutProps) => {
   ];
 
   const filteredNavigation = navigation.filter((item) =>
-    item.roles.includes(role),
+    item.roles.includes(user.role),
   );
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const NavItems = () => (
     <div className="space-y-2">
@@ -84,22 +104,33 @@ const Layout = ({ children }: LayoutProps) => {
           </nav>
 
           <div className="border-t pt-4">
-            <div className="mb-3">
-              <Badge variant={role === "technician" ? "default" : "secondary"}>
-                {role === "technician" ? "Техник" : "Клиент"}
-              </Badge>
+            <div className="flex items-center gap-3 mb-4">
+              <Avatar>
+                <AvatarFallback>
+                  {user.name
+                    .split(" ")
+                    .map((n) => n.charAt(0))
+                    .join("")
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user.email}
+                </p>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                switchRole(role === "client" ? "technician" : "client")
-              }
-              className="w-full"
-            >
-              <Icon name="UserCheck" size={16} className="mr-2" />
-              {role === "client" ? "Режим техника" : "Режим клиента"}
-            </Button>
+            <div className="flex items-center justify-between">
+              <Badge
+                variant={user.role === "technician" ? "default" : "secondary"}
+              >
+                {user.role === "technician" ? "Техник" : "Клиент"}
+              </Badge>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <Icon name="LogOut" size={16} />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -123,32 +154,63 @@ const Layout = ({ children }: LayoutProps) => {
             </nav>
 
             <div className="border-t pt-4">
-              <div className="mb-3">
-                <Badge
-                  variant={role === "technician" ? "default" : "secondary"}
-                >
-                  {role === "technician" ? "Техник" : "Клиент"}
-                </Badge>
+              <div className="flex items-center gap-3 mb-4">
+                <Avatar>
+                  <AvatarFallback>
+                    {user.name
+                      .split(" ")
+                      .map((n) => n.charAt(0))
+                      .join("")
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{user.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  switchRole(role === "client" ? "technician" : "client")
-                }
-                className="w-full"
-              >
-                <Icon name="UserCheck" size={16} className="mr-2" />
-                {role === "client" ? "Режим техника" : "Режим клиента"}
-              </Button>
+              <div className="flex items-center justify-between">
+                <Badge
+                  variant={user.role === "technician" ? "default" : "secondary"}
+                >
+                  {user.role === "technician" ? "Техник" : "Клиент"}
+                </Badge>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <Icon name="LogOut" size={16} />
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
 
-        <div className="flex-1">
-          <Badge variant={role === "technician" ? "default" : "secondary"}>
-            {role === "technician" ? "Техник" : "Клиент"}
+        <div className="flex-1 flex items-center justify-between">
+          <Badge variant={user.role === "technician" ? "default" : "secondary"}>
+            {user.role === "technician" ? "Техник" : "Клиент"}
           </Badge>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>
+                    {user.name
+                      .split(" ")
+                      .map((n) => n.charAt(0))
+                      .join("")
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleLogout}>
+                <Icon name="LogOut" className="mr-2 h-4 w-4" />
+                Выйти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

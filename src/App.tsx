@@ -1,32 +1,61 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import RepairRequests from "./pages/RepairRequests";
-import CreateRequest from "./pages/CreateRequest";
-import Components from "./pages/Components";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Index from "@/pages/Index";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import RepairRequests from "@/pages/RepairRequests";
+import CreateRequest from "@/pages/CreateRequest";
+import Components from "@/pages/Components";
+import NotFound from "@/pages/NotFound";
+import "./App.css";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/repair-requests" element={<RepairRequests />} />
-          <Route path="/create-request" element={<CreateRequest />} />
-          <Route path="/components" element={<Components />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/repair-requests"
+            element={
+              <ProtectedRoute>
+                <RepairRequests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-request"
+            element={
+              <ProtectedRoute requiredRole="client">
+                <CreateRequest />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/components"
+            element={
+              <ProtectedRoute requiredRole="technician">
+                <Components />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        <Toaster />
+      </Router>
+    </AuthProvider>
+  );
+}
 
 export default App;

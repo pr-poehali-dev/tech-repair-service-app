@@ -35,3 +35,43 @@ export interface Component {
 }
 
 export type UserRole = "client" | "technician";
+
+// Authentication types
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: UserRole;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface Session {
+  user: User;
+  token: string;
+  isAuthenticated: boolean;
+}
+
+// API Response types
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
